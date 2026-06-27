@@ -14,6 +14,7 @@ export interface NoteResponse {
 export interface NoteInput {
   title: string;
   content: string;
+  isFavorite?: boolean;
 }
 
 export async function createNote(data: NoteInput): Promise<NoteResponse> {
@@ -21,6 +22,18 @@ export async function createNote(data: NoteInput): Promise<NoteResponse> {
     method: 'POST',
     body: JSON.stringify(data),
   });
+}
+
+export async function getNotes(): Promise<NoteResponse[]> {
+  return apiFetch<NoteResponse[]>('/api/notes');
+}
+
+export async function getNote(id: number): Promise<NoteResponse> {
+  return apiFetch<NoteResponse>(`/api/notes/${id}`);
+}
+
+export async function getFavoriteNotes(): Promise<NoteResponse[]> {
+  return apiFetch<NoteResponse[]>('/api/notes/favorites');
 }
 
 export async function updateNote(
@@ -32,3 +45,4 @@ export async function updateNote(
     body: JSON.stringify(data),
   });
 }
+
