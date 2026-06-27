@@ -1,24 +1,29 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
+import { Star } from "lucide-react";
 import { useAutosave, type AutosaveStatus } from "@/hooks/useAutosave";
 import { createNoteSaver } from "@/lib/notes/createNoteSaver";
+import type { NoteResponse } from "@/lib/actions/notes";
 
 const STATUS_LABEL: Record<AutosaveStatus, string> = {
   idle: "",
-  saving: "Salvando…",
+  saving: "Salvando...",
   saved: "Salvo",
   error: "Erro ao salvar",
 };
 
-export default function NoteEditor() {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+export default function NoteEditor({ note }: { note?: NoteResponse }) {
+  const [title, setTitle] = useState(note?.title ?? "");
+  const [content, setContent] = useState(note?.content ?? "");
+  const [isFavorite, setIsFavorite] = useState(note?.isFavorite ?? false);
 
-  // Instancia o saver uma única vez (mantém o id entre POST → PATCH).
-  const [save] = useState(() => createNoteSaver());
+  const [save] = useState(() => createNoteSaver(note?.id));
 
-  const data = useMemo(() => ({ title, content }), [title, content]);
+  const data = useMemo(
+    () => ({ title, content, isFavorite }),
+    [title, content, isFavorite],
+  );
   const status = useAutosave(data, save);
 
   return (
@@ -37,17 +42,39 @@ export default function NoteEditor() {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Título da nota..."
+          placeholder="Titulo da nota..."
           className="w-full bg-transparent text-4xl font-bold text-[#E7EBF1] placeholder-[#3A4055] outline-none"
         />
-        <span
-          className={
-            "shrink-0 pt-3 text-xs font-medium transition-colors " +
-            (status === "error" ? "text-[#D73337]" : "text-[#7D8695]")
-          }
-        >
-          {STATUS_LABEL[status]}
-        </span>
+
+        <div className="flex shrink-0 items-center gap-3 pt-3">
+          <span
+            className={
+              "text-xs font-medium transition-colors " +
+              (status === "error" ? "text-[#D73337]" : "text-[#7D8695]")
+            }
+          >
+            {STATUS_LABEL[status]}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setIsFavorite((prev) => !prev)}
+            aria-label={
+              isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"
+            }
+            className="cursor-pointer transition-transform hover:scale-110"
+          >
+            <Star
+              className="h-5 w-5 transition-colors"
+              strokeWidth={2}
+              style={
+                isFavorite
+                  ? { color: "#6370CB", fill: "#6370CB" }
+                  : { color: "#3A4055" }
+              }
+            />
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 h-px w-16 bg-white/8" />
@@ -61,3 +88,6 @@ export default function NoteEditor() {
     </div>
   );
 }
+
+
+
