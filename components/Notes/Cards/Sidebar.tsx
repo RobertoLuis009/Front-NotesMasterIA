@@ -1,22 +1,25 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { BookOpen, Star, Clock, Network, Sparkles, Plus, type LucideIcon } from "lucide-react";
 
 type NavItem = {
   label: string;
-  active: boolean;
+  href: string;
   icon: LucideIcon;
 };
 
 const navItems: NavItem[] = [
-  { label: "Todas as notas", active: true, icon: BookOpen },
-  { label: "Favoritas", active: false, icon: Star },
-  { label: "Recentes", active: false, icon: Clock },
-  { label: "Grafo", active: false, icon: Network },
-  { label: "Assistente IA", active: false, icon: Sparkles },
+  { label: "Todas as notas", href: "/notas", icon: BookOpen },
+  { label: "Favoritas", href: "/notas/favoritas", icon: Star },
+  { label: "Recentes", href: "#", icon: Clock },
+  { label: "Grafo", href: "#", icon: Network },
+  { label: "Assistente IA", href: "#", icon: Sparkles },
 ];
 
-
 export default function Sidebar() {
+  const pathname = usePathname();
   return (
     <aside
       className="flex h-full w-72 flex-col gap-6 rounded-2xl border border-white/6 p-5"
@@ -28,7 +31,6 @@ export default function Sidebar() {
         boxShadow: "0 24px 70px -12px #020308",
       }}
     >
-      {/* Nova nota */}
       <Link
         href="/notas/nova"
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#5566B8] to-[#2E5C82] px-4 py-3 text-sm font-semibold text-[#F6F8FB] shadow-lg shadow-[#3A3F8E]/40 transition-all hover:brightness-110"
@@ -37,28 +39,26 @@ export default function Sidebar() {
         Nova nota
       </Link>
 
-      {/* Navegação */}
       <nav className="flex flex-col gap-1">
-        {navItems.map(({ label, active, icon: Icon }) => (
-          <a
+        {navItems.map(({ label, href, icon: Icon }) => (
+          <Link
             key={label}
-            href="#"
+            href={href}
             className={
               "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors " +
-              (active
+              (pathname === href
                 ? "bg-[#6370CB]/15 text-[#E7EBF1]"
                 : "text-[#7D8695] hover:bg-white/5 hover:text-[#E7EBF1]")
             }
           >
             <Icon
-              className={"h-5 w-5 " + (active ? "text-[#6370CB]" : "")}
+              className={"h-5 w-5 " + (pathname === href ? "text-[#6370CB]" : "")}
               strokeWidth={2}
             />
             {label}
-          </a>
+          </Link>
         ))}
       </nav>
-
     </aside>
   );
 }
