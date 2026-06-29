@@ -6,14 +6,14 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   const session = await auth0.getSession();
   if (!session) throw new Error('Unauthenticated');
 
-  const idToken = session.tokenSet.idToken;
-  if (!idToken) throw new Error('No id token available');
+  const accessToken = session.tokenSet.accessToken;
+  if (!accessToken) throw new Error('No access token available');
 
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${idToken}`,
+      Authorization: `Bearer ${accessToken}`,
       ...init?.headers,
     },
   });
