@@ -5,6 +5,11 @@ import "dayjs/locale/pt-br";
 import UserSync from "@/components/UserSync";
 import Header from "@/components/layout/Header";
 import AuroraBackground from "@/components/layout/AuroraBackground";
+import NoteSearch from "@/components/Notes/Cards/search/NoteSearch";
+import NewNoteButton from "@/components/Notes/buttons/NewNoteButton";
+import NoteCountCard from "@/components/Notes/Cards/count/NoteCountCard";
+import RecentNotesList from "@/components/Notes/Cards/list/RecentNotesList";
+import { getConnectionInsights } from "@/lib/actions/notes";
 
 dayjs.locale("pt-br");
 
@@ -24,6 +29,7 @@ export default async function Home() {
   const now = dayjs();
   const greeting = getGreeting(now.hour());
   const firstName = session.user.name?.split(" ")[0] ?? "";
+  const { count } = await getConnectionInsights().catch(() => ({ count: 0 }));
 
   return (
     <AuroraBackground>
@@ -44,9 +50,25 @@ export default async function Home() {
         </h1>
 
         <p className="mt-5 max-w-xl text-lg text-[#7D8695]">
-          Você tem <span className="font-semibold text-[#E7EBF1]">7 ideias</span>{" "}
+          Você tem{" "}
+          <span className="font-semibold text-[#E7EBF1]">
+            {count} {count === 1 ? "ideia" : "ideias"}
+          </span>{" "}
           esperando para se conectar. A IA está observando em silêncio.
         </p>
+
+        <div className="mt-8 flex max-w-xl items-center gap-3">
+          <NoteSearch />
+          <NewNoteButton />
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <NoteCountCard />
+        </div>
+
+        <div className="mt-6 max-w-xl">
+          <RecentNotesList />
+        </div>
       </main>
     </AuroraBackground>
   );

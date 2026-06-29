@@ -1,7 +1,7 @@
 import AuroraBackground from "@/components/layout/AuroraBackground";
 import Header from "@/components/layout/Header";
-import Sidebar from "@/components/Notes/Cards/Sidebar";
-import NotesList from "@/components/Notes/Cards/NotesList";
+import Sidebar from "@/components/Notes/Cards/navigation/Sidebar";
+import NotesList from "@/components/Notes/Cards/list/NotesList";
 import { getFavoriteNotes } from "@/lib/actions/notes";
 
 export default async function FavoritasPage() {

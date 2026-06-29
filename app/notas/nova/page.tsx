@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import AuroraBackground from "@/components/layout/AuroraBackground";
 import Header from "@/components/layout/Header";
-import NoteEditor from "@/components/Notes/Cards/NoteEditor";
+import NoteEditor from "@/components/Notes/Cards/editor/NoteEditor";
 
 export default function NovaNotaPage() {
   return (

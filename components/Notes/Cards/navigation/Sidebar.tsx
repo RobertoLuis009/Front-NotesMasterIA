@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Star, Clock, Network, Sparkles, Plus, type LucideIcon } from "lucide-react";
+import { BookOpen, Star, Clock, Network, Sparkles, type LucideIcon } from "lucide-react";
+import NewNoteButton from "@/components/Notes/buttons/NewNoteButton";
 
 type NavItem = {
   label: string;
@@ -31,13 +32,7 @@ export default function Sidebar() {
         boxShadow: "0 24px 70px -12px #020308",
       }}
     >
-      <Link
-        href="/notas/nova"
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#5566B8] to-[#2E5C82] px-4 py-3 text-sm font-semibold text-[#F6F8FB] shadow-lg shadow-[#3A3F8E]/40 transition-all hover:brightness-110"
-      >
-        <Plus className="h-4 w-4" strokeWidth={2.5} />
-        Nova nota
-      </Link>
+      <NewNoteButton />
 
       <nav className="flex flex-col gap-1">
         {navItems.map(({ label, href, icon: Icon }) => (
