@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Star, Clock, Network, Sparkles, type LucideIcon } from "lucide-react";
+import { BookOpen, Star, Network, Sparkles, type LucideIcon } from "lucide-react";
 import NewNoteButton from "@/components/Notes/buttons/NewNoteButton";
 
 type NavItem = {
@@ -14,7 +14,6 @@ type NavItem = {
 const navItems: NavItem[] = [
   { label: "Todas as notas", href: "/notas", icon: BookOpen },
   { label: "Favoritas", href: "/notas/favoritas", icon: Star },
-  { label: "Recentes", href: "#", icon: Clock },
   { label: "Grafo", href: "#", icon: Network },
   { label: "Assistente IA", href: "#", icon: Sparkles },
 ];
