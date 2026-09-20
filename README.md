@@ -1,6 +1,17 @@
 # NotesMaster — Front-end
 
-Interface web do NotesMaster: um aplicativo de notas com salvamento automático e integração com IA. Construído com Next.js 16, Tailwind CSS v4 e autenticação via Auth0.
+Interface web de um aplicativo de notas com **salvamento automático**, **busca semântica** e **sugestão de notas relacionadas**. Construída com Next.js 16 (App Router), React 19 e Tailwind CSS v4, com autenticação via OpenID Connect.
+
+---
+
+## Destaques técnicos
+
+- **Server Components + Server Actions:** a sessão e o access token permanecem no servidor. O navegador nunca recebe o token nem chama a API diretamente.
+- **Autosave robusto:** debounce com limite máximo de espera e serialização das requisições, evitando gravações concorrentes e condições de corrida entre criação e atualização.
+- **Camada de acesso à API centralizada:** um único cliente (`apiFetch`) injeta a autenticação e padroniza o tratamento de erros.
+- **Proteção de rotas por middleware:** todas as rotas passam pelo middleware de autenticação do Next.js.
+- **Build `standalone`:** imagem Docker enxuta, pronta para produção.
+- **Design system próprio:** tema escuro com tokens documentados e componentes reutilizáveis (ver [COMPONENTS.md](./COMPONENTS.md)).
 
 ---
 
@@ -9,36 +20,36 @@ Interface web do NotesMaster: um aplicativo de notas com salvamento automático 
 | Camada | Tecnologia |
 |---|---|
 | Framework | Next.js 16 (App Router) |
+| UI | React 19 |
 | Linguagem | TypeScript 5 |
 | Estilização | Tailwind CSS v4 |
-| Autenticação | Auth0 (`@auth0/nextjs-auth0` v4) |
-| Notificações | Sonner v2 |
+| Autenticação | `@auth0/nextjs-auth0` v4 (OIDC) |
+| Notificações | Sonner |
 | Ícones | Lucide React |
 | Datas | Day.js (locale `pt-br`) |
-| Build output | `standalone` (Docker-ready) |
 
 ---
 
 ## Pré-requisitos
 
-- Node.js 20+
-- Back-end rodando em `http://localhost:3001` (ou definir `NEXT_PUBLIC_API_URL`)
-- Conta e aplicação configuradas no Auth0
+- Node.js 22+
+- API do NotesMaster em execução (por padrão em `http://localhost:3001`)
+- Aplicação OIDC configurada no provedor de identidade
 
 ---
 
-## Variáveis de ambiente
+## Configuração
 
-Crie um arquivo `.env.local` na raiz:
+Crie um arquivo `.env.local` na raiz do projeto:
 
 ```env
-# Auth0
-AUTH0_SECRET=                  # string aleatória longa (openssl rand -hex 32)
-AUTH0_BASE_URL=http://localhost:3000
-AUTH0_ISSUER_BASE_URL=https://<seu-tenant>.auth0.com
+# Autenticação (OIDC)
+AUTH0_SECRET=               # string aleatória longa, usada para criptografar a sessão
+AUTH0_DOMAIN=
 AUTH0_CLIENT_ID=
 AUTH0_CLIENT_SECRET=
-AUTH0_AUDIENCE=                # audience da API no Auth0
+AUTH0_AUDIENCE=             # identificador da API que receberá o access token
+APP_BASE_URL=http://localhost:3000
 
 # API
 NEXT_PUBLIC_API_URL=http://localhost:3001
@@ -55,7 +66,7 @@ npm run dev       # http://localhost:3000
 
 ```bash
 npm run build     # build de produção
-npm run start     # serve o build
+npm run start     # executa o build
 npm run lint      # ESLint
 ```
 
@@ -73,92 +84,81 @@ docker run -p 3000:3000 --env-file .env.local notesmaster-front
 | Rota | Descrição |
 |---|---|
 | `/` | Redireciona para `/home` |
-| `/home` | Dashboard com saudação personalizada (requer sessão) |
-| `/login` | Página de login com branding |
-| `/notas` | Lista de notas com sidebar de navegação |
-| `/notas/nova` | Editor de nova nota com autosave |
-| `/auth/login` | Endpoint Auth0 (gerenciado pelo middleware) |
-| `/auth/logout` | Encerramento de sessão Auth0 |
+| `/login` | Página de entrada |
+| `/home` | Painel com resumo, notas recentes e indicadores |
+| `/notas` | Lista de notas com busca |
+| `/notas/favoritas` | Notas favoritas |
+| `/notas/nova` | Criação de nota com autosave |
+| `/notas/[id]` | Edição de nota, com painel de notas relacionadas |
+| `/auth/*` | Rotas de login e logout, tratadas pelo middleware de autenticação |
 
 ---
 
-## Estrutura de arquivos
+## Arquitetura
 
 ```
-app/
-  layout.tsx            # Layout raiz — fontes Geist + Toaster global
-  page.tsx              # Redirect / → /home
-  globals.css           # Import Tailwind v4 + tokens base
-  home/page.tsx         # Dashboard (Server Component, exige sessão)
-  login/page.tsx        # Página de login pública
-  notas/
-    page.tsx            # Lista de notas
-    nova/page.tsx       # Criação de nota com autosave
+app/                      # Rotas (App Router)
+  home/  login/
+  notas/                  # lista, favoritas, nova e [id]
 
 components/
-  layout/
-    AuroraBackground.tsx  # Wrapper do fundo aurora (Server)
-    Header.tsx            # Cabeçalho com logo, nav e avatar (Server)
-    NavLinks.tsx          # Links ativos por rota (Client)
-    UserMenu.tsx          # Dropdown de conta — sair (Client)
+  layout/                 # Header, navegação, menu do usuário, fundo
   Notes/
     Cards/
-      Sidebar.tsx         # Sidebar de categorias de notas (Server)
-      NoteEditor.tsx      # Editor com autosave (Client)
-  UserSync.tsx            # Sincroniza usuário Auth0 → API no mount (Client)
-  Form.tsx                # Wrapper genérico de formulário com toast (Client)
+      navigation/         # Sidebar
+      editor/             # Editor com autosave e painel de relacionadas
+      list/               # Listas de notas (completa e recentes)
+      search/             # Busca
+      count/              # Indicadores
+    buttons/
+  UserSync.tsx            # Sincroniza o usuário autenticado com a API
+  Form.tsx                # Wrapper de formulário com feedback
 
 hooks/
-  useAutosave.ts          # Debounce + maxWait + serialização de saves
+  useAutosave.ts          # Debounce, limite máximo de espera e serialização
 
 lib/
-  auth0.ts                # Instância do Auth0Client com audience
-  api.ts                  # apiFetch — injeta Bearer token em todas as chamadas
-  auth/
-  actions/
-    notes.ts              # Server Actions: createNote, updateNote
-    users.ts              # Server Actions: getMe, syncUser
-  notes/
-    createNoteSaver.ts    # Factory: POST na 1ª vez, PATCH nas seguintes
-  notifications/
-    index.ts              # Wrapper do sonner (notify.success/error/promise)
+  auth0.ts                # Cliente de autenticação
+  api.ts                  # apiFetch: injeta o token e trata erros
+  actions/                # Server Actions (notas e usuários)
+  notes/createNoteSaver.ts# Criação na 1ª gravação, atualização nas seguintes
+  notifications/          # Wrapper de notificações
 
-proxy.ts                  # Middleware Next.js — delega ao auth0.middleware
+proxy.ts                  # Middleware do Next.js (autenticação)
 ```
 
 ---
 
 ## Fluxo de autenticação
 
-1. Usuário acessa `/login` e clica em "Entrar com Auth0"
-2. Redirecionado para `/auth/login` — gerenciado pelo `proxy.ts` (middleware)
-3. Auth0 autentica e retorna com sessão + `idToken`
-4. `UserSync` (`components/UserSync.tsx`) dispara `POST /api/users/me` para criar/atualizar o usuário no banco
-5. `apiFetch` injeta `Authorization: Bearer <idToken>` em todas as chamadas subsequentes
+1. O usuário inicia o login e é redirecionado ao provedor de identidade.
+2. Ao retornar, o SDK cria uma sessão criptografada, em cookie, no servidor.
+3. `UserSync` solicita à API a criação do perfil local, caso ainda não exista.
+4. As Server Actions chamam a API via `apiFetch`, que envia o access token da sessão no header `Authorization`.
 
 ---
 
-## Autosave (fluxo da nota nova)
+## Autosave
 
 ```
 usuário digita
-  → useAutosave: debounce 800 ms / maxWait 5 s
+  → useAutosave: debounce de 800 ms, com espera máxima de 5 s
     → createNoteSaver:
-        1ª vez → POST /api/notes  (cria, salva o id)
-        demais → PATCH /api/notes/:id
+        1ª gravação → POST  (cria a nota e guarda o id)
+        demais      → PATCH (atualiza a nota existente)
 ```
 
-Status exibido no editor: `idle | saving | saved | error`.
+As gravações são serializadas: uma nova só começa quando a anterior termina. O editor exibe o estado atual (`idle`, `saving`, `saved` ou `error`).
 
 ---
 
-## Design — Tema Nebula
+## Design
 
-Fundo quase preto azulado (`#010205`) com auroras radiais e índigo acinzentado como cor primária. Consulte [COMPONENTS.md](./COMPONENTS.md) para a paleta completa, tokens e regras de uso dos componentes visuais.
+Tema escuro com fundo em degradê e cores de destaque em índigo e ciano. A paleta, os tokens e as regras de uso dos componentes visuais estão em [COMPONENTS.md](./COMPONENTS.md).
 
 ---
 
-## Git Flow
+## Fluxo de branches
 
 | Branch | Propósito |
 |---|---|
@@ -166,14 +166,6 @@ Fundo quase preto azulado (`#010205`) com auroras radiais e índigo acinzentado 
 | `develop` | Integração de features |
 | `feature/*` | Novas funcionalidades |
 | `release/*` | Preparação de versão |
-| `hotfix/*` | Correções urgentes em produção |
+| `hotfix/*` | Correções urgentes |
 
-```bash
-# Iniciar uma feature
-git checkout -b feature/nome develop
-
-# Finalizar
-git checkout develop
-git merge --no-ff feature/nome
-git push origin develop
-```
+Os commits seguem o padrão Conventional Commits (`feat`, `fix`, `chore`, ...).
