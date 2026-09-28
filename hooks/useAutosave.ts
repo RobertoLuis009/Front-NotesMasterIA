@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from "react";
 export type AutosaveStatus = "idle" | "saving" | "saved" | "error";
 
 type Options = {
-  /** Espera após parar de digitar antes de salvar (ms). Default 800. */
+  /** Espera após parar de digitar antes de salvar (ms). Default 2000. */
   delay?: number;
-  /** Teto: força um save mesmo em digitação contínua (ms). Default 5000. */
+  /** Teto: força um save mesmo em digitação contínua (ms). Default 10000. */
   maxWait?: number;
 };
 
@@ -19,7 +19,7 @@ type Options = {
 export function useAutosave<T>(
   value: T,
   save: (value: T) => Promise<void>,
-  { delay = 800, maxWait = 5000 }: Options = {},
+  { delay = 2000, maxWait = 10000 }: Options = {},
 ) {
   const [status, setStatus] = useState<AutosaveStatus>("idle");
 
