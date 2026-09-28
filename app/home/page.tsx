@@ -2,7 +2,7 @@ import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
-import UserSync from "@/components/UserSync";
+import LoginNotice from "@/components/LoginNotice";
 import Header from "@/components/layout/Header";
 import AuroraBackground from "@/components/layout/AuroraBackground";
 import NoteSearch from "@/components/Notes/Cards/search/NoteSearch";
@@ -28,12 +28,16 @@ export default async function Home() {
 
   const now = dayjs();
   const greeting = getGreeting(now.hour());
-  const firstName = session.user.name?.split(" ")[0] ?? "";
+  const rawName =
+    session.user.given_name ?? session.user.nickname ?? session.user.name ?? "";
+  const firstName = rawName.includes("@")
+    ? rawName.split("@")[0]
+    : rawName.split(" ")[0];
   const { count } = await getConnectionInsights().catch(() => ({ count: 0 }));
 
   return (
     <AuroraBackground>
-      <UserSync />
+      <LoginNotice />
       <Header />
 
       <main className="px-6 py-12 sm:px-12 sm:py-16">
