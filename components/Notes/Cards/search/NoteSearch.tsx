@@ -48,14 +48,14 @@ export default function NoteSearch() {
   }, []);
 
   return (
-    <div ref={ref} className="relative w-full max-w-md">
-      <div className="flex items-center gap-2 rounded-xl border border-white/6 bg-white/5 px-4 py-2.5">
+    <div ref={ref} className="relative w-full">
+      <div className="flex h-[54px] items-center gap-3 rounded-[13px] border border-white/9 bg-white/[0.035] px-[18px] transition-colors focus-within:border-white/15 focus-within:bg-white/[0.06]">
         <Search className="h-4 w-4 shrink-0 text-[#7D8695]" strokeWidth={2} />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Busca mágica — busque por conceito..."
-          className="flex-1 bg-transparent text-sm text-[#E7EBF1] placeholder-[#3A4055] outline-none"
+          placeholder="Busca mágica — busque por conceito"
+          className="flex-1 bg-transparent text-[14.5px] text-[#E7EBF1] placeholder-[#7D8695] outline-none"
         />
         {query && (
           <button
